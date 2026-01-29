@@ -36,11 +36,12 @@ jobs:
             -DCMAKE_CXX_FLAGS="/O2 /Ot /arch:AVX2 /fp:fast" `
             -DCMAKE_C_FLAGS="/O2 /Ot /arch:AVX2 /fp:fast"
 
-      - name: Build the Server
+      - name: Build Targets
         run: |
           cd build
-          # Ninja uses all CPU cores automatically
-          cmake --build . --config Release --target llama-server
+          # Removed "--target llama-server" to build everything 
+          # (includes llama-cli, llama-quantize, llama-server, etc.)
+          cmake --build . --config Release
 
       - name: Gather CUDA Runtime DLLs
         run: |
@@ -50,11 +51,12 @@ jobs:
           Copy-Item "$env:CUDA_PATH\bin\cublasLt64_*.dll" -Destination cuda-runtime
         shell: powershell
 
-      - name: Upload Binary
+      - name: Upload Binaries
         uses: actions/upload-artifact@v4
         with:
-          name: custom-ik-llama-server
-          path: build/bin/* 
+          name: custom-ik-llama
+          path: build/bin/*
+
       - name: Upload CUDA DLLs
         uses: actions/upload-artifact@v4
         with:
