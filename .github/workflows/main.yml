@@ -33,8 +33,6 @@ jobs:
             -DGGML_AVX2=ON `
             -DGGML_F16C=ON `
             -DGGML_FMA=ON `
-            -DCMAKE_CXX_FLAGS="/O2 /Ot /arch:AVX2 /fp:fast" `
-            -DCMAKE_C_FLAGS="/O2 /Ot /arch:AVX2 /fp:fast"
 
       - name: Build Targets
         run: |
