@@ -1,0 +1,66 @@
+name: Build Custom ik_llama.cpp RTX 30xx AVX2
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Ninja
+        run: choco install ninja
+
+      - name: Install CUDA Toolkit
+        uses: Jimver/cuda-toolkit@v0.2.30
+        with:
+          cuda: '12.9.1'
+
+      - name: Setup MSVC environment
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Configure CMake for RTX 30xx AVX2
+        run: |
+          mkdir build
+          cd build
+          cmake .. -G Ninja `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DGGML_CUDA=ON `
+            -DGGML_IQK_FA_ALL_QUANTS=ON `
+            -DCMAKE_CUDA_ARCHITECTURES=86 `
+            -DGGML_FLASH_ATTN=ON `
+            -DGGML_AVX2=ON `
+            -DGGML_F16C=ON `
+            -DGGML_FMA=ON `
+            -DCMAKE_CXX_FLAGS="/O2 /Ot /arch:AVX2 /fp:fast" `
+            -DCMAKE_C_FLAGS="/O2 /Ot /arch:AVX2 /fp:fast" `
+            -DCMAKE_CUDA_FLAGS="-allow-unsupported-compiler"
+
+      - name: Build Targets
+        run: |
+          cd build
+          # Removed "--target llama-server" to build everything 
+          # (includes llama-cli, llama-quantize, llama-server, etc.)
+          cmake --build . --config Release
+
+      - name: Gather CUDA Runtime DLLs
+        run: |
+          mkdir cuda-runtime
+          Copy-Item "$env:CUDA_PATH\bin\cudart64_*.dll" -Destination cuda-runtime
+          Copy-Item "$env:CUDA_PATH\bin\cublas64_*.dll" -Destination cuda-runtime
+          Copy-Item "$env:CUDA_PATH\bin\cublasLt64_*.dll" -Destination cuda-runtime
+        shell: powershell
+
+      - name: Upload Binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: custom-ik-llama
+          path: build/bin/*
+
+      - name: Upload CUDA DLLs
+        uses: actions/upload-artifact@v4
+        with:
+          name: cuda-runtime-dlls
+          path: cuda-runtime/*
