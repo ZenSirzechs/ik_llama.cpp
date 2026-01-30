@@ -1412,7 +1412,9 @@ void compute_helper_q(KHelper& kh, VHelper& vh, int nq1, int nk1, int stride_q, 
         const float * q, const char * mask, float * qkv,
         const float * sinkf, float * M, float * S, char * qptr) {
     auto q8 = (typename KHelper::block_q8 *)qptr;
-    if constexpr (q_step > 1 && std::is_same_v<KHelper, HelperQ80>) {
+    // This optimization fails under certain conditions (see https://github.com/ikawrakow/ik_llama.cpp/issues/1205)
+    // => disabling until I figure out what goes wrong
+    if constexpr (false && q_step > 1 && std::is_same_v<KHelper, HelperQ80>) {
         if (nq1 == q_step) {
             fms.init_qstep();
             kh.reset_block();
