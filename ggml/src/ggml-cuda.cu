@@ -4500,6 +4500,18 @@ static void ggml_backend_cuda_event_wait(ggml_backend_t backend, ggml_backend_ev
     }
 }
 
+GGML_CALL void * ggml_backend_cuda_get_device_ptr(void * buffer) {
+#if CUDART_VERSION >= 11100 || defined(GGML_USE_MUSA)
+    void * dev_ptr = nullptr;
+    cudaError_t err = cudaHostGetDevicePointer(&dev_ptr, buffer, 0);
+    if (err == cudaSuccess) {
+        return dev_ptr;
+    }
+#endif
+    return buffer;
+}
+
+
 static void ggml_backend_cuda_event_synchronize(ggml_backend_event_t event) {
     CUDA_CHECK(cudaEventSynchronize((cudaEvent_t)event->context));
 }
@@ -4704,7 +4716,7 @@ GGML_CALL bool ggml_backend_cuda_register_host_buffer(void * buffer, size_t size
     }
 
 #if CUDART_VERSION >= 11100 || defined(GGML_USE_MUSA)
-    cudaError_t err = cudaHostRegister(buffer, size, cudaHostRegisterPortable | cudaHostRegisterReadOnly);
+    cudaError_t err = cudaHostRegister(buffer, size, cudaHostRegisterPortable | cudaHostRegisterReadOnly | cudaHostRegisterMapped);
     if (err != cudaSuccess) {
         // clear the error
         cudaGetLastError();
