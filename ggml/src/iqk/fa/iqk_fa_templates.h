@@ -942,7 +942,7 @@ struct FlashMS {
     }
 #endif
 
-    cache_t cache[q_step*k_step];
+    alignas(32) cache_t cache[q_step*k_step];
     float S[q_step], M[q_step];
     int need_scaling[q_step];
     float vms[q_step];
@@ -1225,7 +1225,7 @@ struct FlashQKV {
     // As a result, we get an infinite stream of warnings about uninitialized variable use (one for each
     // combination of D, q_step, k_step), which is extremely annoying. Hence, I succumb to the trend of
     // constantly being saved by others (the compiler in this case), and add this 100% unnecessary initialization.
-    qkv_cache_t qkv_cache[D*q_step]; // = {};
+    alignas(32) qkv_cache_t qkv_cache[D*q_step]; // = {};
     //qkv_cache_t * qkv_cache;
 };
 
