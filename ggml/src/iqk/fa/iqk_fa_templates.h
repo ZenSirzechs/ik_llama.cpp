@@ -1364,6 +1364,10 @@ void compute_helper(KHelper& kh, VHelper& vh, int nq1, int nk1, int stride_q, in
         for (; ik >=0 && Mc[ik] != 0; ik -= k_step);
         ik += k_step;
         for (int k1 = 0; k1 < ik/k_step; ++k1) {
+#if defined(__x86_64__) || defined(_M_X64)
+            _mm_prefetch(kh.lblock(k_step), _MM_HINT_T0);
+            _mm_prefetch(vh.lblock(k_step), _MM_HINT_T0);
+#endif
 #ifdef __aarch64__
             KQHelper::multiply_mask_kq(kh, Dk, stride_m, q_f16, mr, fms);
 #else
@@ -1391,6 +1395,10 @@ void compute_helper(KHelper& kh, VHelper& vh, int nq1, int nk1, int stride_q, in
 #endif
         auto mr = mask;
         for (int k1 = 0; k1 < nk1/k_step; ++k1) {
+#if defined(__x86_64__) || defined(_M_X64)
+            _mm_prefetch(kh.lblock(k_step), _MM_HINT_T0);
+            _mm_prefetch(vh.lblock(k_step), _MM_HINT_T0);
+#endif
 #ifdef __aarch64__
             KQHelper::multiply_mask_kq(n_left, kh, Dk, stride_m, q_f16, mr, fms);
 #else
@@ -1460,6 +1468,10 @@ void compute_helper_q(KHelper& kh, VHelper& vh, int nq1, int nk1, int stride_q, 
         for (; ik >=0 && Mc[ik] != 0; ik -= k_step);
         ik += k_step;
         for (int k1 = 0; k1 < ik/k_step; ++k1) {
+#if defined(__x86_64__) || defined(_M_X64)
+            _mm_prefetch(kh.lblock(k_step), _MM_HINT_T0);
+            _mm_prefetch(vh.lblock(k_step), _MM_HINT_T0);
+#endif
 #if FA_TIMING
             t1 = Perf::cur_time();
             KQHelper::mul_mask_kq(kh, stride_m, q8, mr, fms);
@@ -1496,6 +1508,10 @@ void compute_helper_q(KHelper& kh, VHelper& vh, int nq1, int nk1, int stride_q, 
         HelperQ80::convert<Dk>(n_left, stride_q, q, q8);
         auto mr = mask;
         for (int k1 = 0; k1 < nk1/k_step; ++k1) {
+#if defined(__x86_64__) || defined(_M_X64)
+            _mm_prefetch(kh.lblock(k_step), _MM_HINT_T0);
+            _mm_prefetch(vh.lblock(k_step), _MM_HINT_T0);
+#endif
             KQHelper::mul_mask_kq(n_left, kh, stride_m, q8, mr, fms);
             fqkv.accumulate_qkv(n_left, vh, fms);
             kh.next_block(k_step);
