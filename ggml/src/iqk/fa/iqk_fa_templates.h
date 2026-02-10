@@ -1426,7 +1426,7 @@ void compute_helper_q(KHelper& kh, VHelper& vh, int nq1, int nk1, int stride_q, 
             auto mr = mask;
             auto Mc = (const uint16_t *)(mr + (q_step - 1)*stride_m);
             int ik = nk1 - k_step;
-            for (; ik >=0 && Mc[ik] != 0; ik -= k_step);
+            for (; ik >= 0 && Mc[ik] != 0; ik -= k_step);
             ik += k_step;
             for (int k1 = 0; k1 < ik/k_step; ++k1) {
                 HelperQ80R8<Dk>::repack(k_step, kh.block, kh.stride, q8r8);
